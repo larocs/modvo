@@ -1,0 +1,27 @@
+dataloader:
+  class: kitti.KITTILoader
+  root_path: '/root/datasets/kitti'
+  start_frame: 0
+  stop_frame: 800
+  sequence_name: '03'
+  camera_id: '0'
+
+detector:
+  class: superpoint.SuperPointDetector
+  descriptor_dim: 256
+  nms_radius: 4
+  keypoint_threshold: 0.005
+  max_keypoints: -1
+  remove_borders: 4
+  path: '/root/modvo/modvo/thirdparty/SuperGluePretrainedNetwork/models/weights/superpoint_v1.pth'
+  device: 'cuda'
+
+matcher:
+  class: superglue.SuperglueMatcher
+  weights: 'outdoor'
+  device: 'cpu'
+  path: '/root/modvo/modvo/thirdparty/SuperGluePretrainedNetwork/models/weights/superglue_outdoor.pth'
+
+vo:
+  class: frame_by_frame.FrameByFrameTracker
+  

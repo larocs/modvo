@@ -1,0 +1,6 @@
+[submodule "modvo/thirdparty/SuperGluePretrainedNetwork"]
+	path = modvo/thirdparty/SuperGluePretrainedNetwork
+	url = https://github.com/hudsonmartins/SuperGluePretrainedNetwork/
+[submodule "modvo/thirdparty/pangolin"]
+	path = modvo/thirdparty/pangolin
+	url = https://github.com/hudsonmartins/pangolin
