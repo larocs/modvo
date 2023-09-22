@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   message_filters
-  modvo
   cv_bridge
 )
 
