@@ -11,6 +11,7 @@ class KITTILoader(DataLoader):
         self.size = params['stop_frame']-params['start_frame']
         self.sequence = params['sequence_name']
         self.camera_id = 'image_'+str(params['camera_id'])
+        self.type = 'dataset'
         self.index = 0
         self.set_camera()
 

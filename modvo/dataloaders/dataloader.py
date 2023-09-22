@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 class DataLoader(ABC):
     @abstractmethod
     def __init__(self, **params):
+        self.type = None #either dataset or stream
         self.root_path = None
         self.camera = None
         self.size = None
