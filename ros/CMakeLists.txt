@@ -10,13 +10,17 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  message_filters
+  modvo
+  cv_bridge
 )
 
 catkin_package(
  CATKIN_DEPENDS rospy
 )
 
-catkin_install_python(PROGRAMS scripts/rgb_stream_node.py 
+catkin_install_python(PROGRAMS scripts/rgb_stream_node.py
+                               scripts/stream_dataloader.py 
                       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Specify additional locations of header files

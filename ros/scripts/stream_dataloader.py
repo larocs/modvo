@@ -1,55 +1,43 @@
-import os
-import cv2
+import message_filters
+from sensor_msgs.msg import CompressedImage, CameraInfo
+from cv_bridge import CvBridge
 from modvo.dataloaders.dataloader import DataLoader
 from modvo.cameras.pinhole import PinholeCamera
 
 class ROSStreamLoader(DataLoader):
     def __init__(self, **params):
-        self.root_path = None
-        self.set_camera()
+        self.buffer_size = params['buffer_size']
+        image_sub = message_filters.Subscriber('rgb/compressed', CompressedImage)
+        cam_info_sub = message_filters.Subscriber('rgb/camera_info', CameraInfo)
+        self.ts = message_filters.TimeSynchronizer([image_sub, cam_info_sub], 10)
+        self.ts.registerCallback(self.callback)
+        self.bridge = CvBridge()       
+        self.buffer = []
 
-    def __next__(self):
-        if(self.index > self.size):
-            raise StopIteration
-        else:
-            file_name = os.path.join(self.root_path, 'sequences', self.sequence,
-                                 self.camera_id, str(self.index).zfill(6)+'.png')
-            self.index += 1
-            return cv2.imread(file_name)
-    
-
-    def get_timestamp(self):
-        ts_path =  os.path.join(self.root_path, 'sequences', self.sequence, 'times.txt')
-        lines = open(ts_path).read().split()
-        return lines[self.index - 1]
-
-
-    def set_camera(self):
-        calib_path =  os.path.join(self.root_path, 'sequences', self.sequence, 'calib.txt')
-        lines = open(calib_path).read().split()
-        cam_params = {'width': 1242.0,
-                      'height': 375.0,
-                      'fx': float(lines[1]), 
-                      'fy': float(lines[6]), 
-                      'cx': float(lines[3]),
-                      'cy': float(lines[7]), 
+    def callback(self, image, cam_info):
+        image = self.bridge.compressed_imgmsg_to_cv2(image)
+        cam_params = {'width': cam_info.width,
+                      'height': cam_info.height,
+                      'fx': cam_info.K[0], 
+                      'fy': cam_info.K[4], 
+                      'cx': cam_info.K[2],
+                      'cy': cam_info.K[5], 
                       'k1': 0,
                       'k2': 0,
                       'p1': 0,
                       'p2': 0,
                       'k3': 0}
         self.camera = PinholeCamera(**cam_params)
-      
-    def get_camera(self):
-        return super().get_camera()
+        self.buffer.append(image)
+        if len(self.buffer) > self.buffer_size:
+            self.buffer.pop(0)
 
-if __name__ == '__main__':
-    dlparams = {'root_path': '/root/datasets/kitti',
-                'start_frame': 0,
-                'stop_frame': 800,
-                'sequence_name': '03',
-                'camera_id': '0',}
-    dataloader = KITTILoader(**dlparams)
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        return self.buffer.pop(0)
+    
 
-    for i, img  in enumerate(dataloader):
-        print(i,'/', len(dataloader))
+    
+
