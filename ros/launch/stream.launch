@@ -1,6 +1,0 @@
-<launch>
-
-<node pkg="modvo" type="rgb_stream_node.py" name="modvo" output="screen">
-</node>
-
-</launch>
