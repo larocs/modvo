@@ -1,0 +1,9 @@
+<launch>
+
+<node pkg="modvo" type="rgb_stream_node.py" name="modvo" output="screen">
+</node>
+
+<node pkg="modvo" type="stream_dataloader.py" name="dataloader" output="screen">
+</node>
+
+</launch>
