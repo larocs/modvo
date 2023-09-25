@@ -20,6 +20,8 @@ matcher:
   class: superglue.SuperglueMatcher
   weights: 'outdoor'
   device: 'cpu'
+  image_height: 1242.0
+  image_width: 375.0
   path: '/root/modvo/modvo/thirdparty/SuperGluePretrainedNetwork/models/weights/superglue_outdoor.pth'
 
 vo:

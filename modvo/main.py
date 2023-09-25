@@ -22,8 +22,6 @@ def main(args):
     params = {k: v for k, v in config['detector'].items() if k != 'class'}
     detector = attr(**params)
 
-    mat_params = {'camera': dataloader.get_camera()}
-    config['matcher'].update(mat_params) 
     mat_class = config['matcher']['class']
     module = importlib.import_module('modvo.matchers.'+mat_class.rsplit('.', 1)[0])
     attr = getattr(module, mat_class.rsplit('.', 1)[-1])

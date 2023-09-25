@@ -9,7 +9,7 @@ class SuperglueMatcher(Matcher):
         self.matcher = SuperGlue(params)
         self.device = params['device']
         self.matcher = self.matcher.to(self.device)
-        self.size_imgs = (params['camera'].height, params['camera'].width)
+        self.size_imgs = (params['image_height'], params['image_width'])
         
     def match(self, features0, features1):
         data = {}
