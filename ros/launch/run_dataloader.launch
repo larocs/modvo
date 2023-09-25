@@ -1,9 +1,11 @@
 <launch>
 
-<node pkg="modvo" type="rgb_stream_node.py" name="modvo" output="screen">
+<node pkg="modvo" type="rgb_stream_node.py" name="rgb_stream" output="screen">
 </node>
 
 <node pkg="modvo" type="stream_dataloader.py" name="dataloader" output="screen">
+    <remap from="rgb/compressed" to="qcar/rgb/compressed"/>
+    <remap from="rgb/camera_info" to="qcar/rgb/camera_info"/>
 </node>
 
 </launch>

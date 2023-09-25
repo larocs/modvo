@@ -30,7 +30,7 @@ class ORBDetector(Detector):
 if __name__ == '__main__':
     from modvo.utils import viz
 
-    img0 = cv2.imread('/home/hudson/Desktop/Unicamp/Doutorado/Projeto/datasets/kitti/sequences/00/image_0/000000.png')
+    img0 = cv2.imread('tests/imgs/000000.png')
     params = {'nfeatures': 1000,
               'scaleFactor': 1.2,}
     det = ORBDetector(**params)

@@ -1,0 +1,18 @@
+dataloader:
+  class: ros_stream.ROSStreamLoader
+  rgb_topic: '/qcar/rgb/compressed'
+  cam_info_topic: '/qcar/rgb/camera_info'
+  buffer_size: 10
+
+detector:
+  class: orb.ORBDetector
+  nfeatures: 1000
+  scaleFactor: 1.2
+
+matcher:
+  class: bf.BFMatcher
+  crossCheck: false
+
+vo:
+  class: frame_by_frame.FrameByFrameTracker
+  

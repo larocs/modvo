@@ -48,7 +48,7 @@ if __name__ == '__main__':
     from modvo.gui.viewer import GUIDrawer
     from modvo.maps.kf_based import Frame
 
-    dlparams = {'root_path': '/media/hudson/9708e369-632b-44b6-8c81-cc636dfdf2f34/home/hudson/Desktop/Unicamp/Doutorado/Projeto/datasets/kitti/',
+    dlparams = {'root_path': '/root/datasets/kitti/',
                 'start_frame': 0,
                 'stop_frame': 800,
                 'sequence_name': '03',

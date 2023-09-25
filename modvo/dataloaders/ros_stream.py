@@ -9,10 +9,14 @@ from modvo.cameras.pinhole import PinholeCamera
 
 class ROSStreamLoader(DataLoader):
     def __init__(self, **params):
+        rospy.init_node('ros_stream_dataloader', anonymous=True)
         self.buffer_size = params['buffer_size']
+        rgb_topic = params['rgb_topic']
+        cam_info_topic = params['cam_info_topic']
         self.type = 'stream'
-        image_sub = message_filters.Subscriber('rgb/compressed', CompressedImage)
-        cam_info_sub = message_filters.Subscriber('rgb/camera_info', CameraInfo)
+        
+        image_sub = message_filters.Subscriber(rgb_topic, CompressedImage)
+        cam_info_sub = message_filters.Subscriber(cam_info_topic, CameraInfo)
         self.ts = message_filters.TimeSynchronizer([image_sub, cam_info_sub], 10)
         self.ts.registerCallback(self.callback)
         self.bridge = CvBridge()       
@@ -46,12 +50,5 @@ class ROSStreamLoader(DataLoader):
         while not rospy.is_shutdown():
                 rospy.sleep(0.01)
     
-
-def main():
-    rospy.init_node('ros_stream_dataloader', anonymous=True)
-    loader = ROSStreamLoader(buffer_size=10)
-    loader.run()
-
-
-if __name__ == '__main__':
-    main()
+    def get_timestamp(self):
+        return rospy.Time.now().to_sec()

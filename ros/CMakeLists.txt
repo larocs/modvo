@@ -19,7 +19,7 @@ catkin_package(
 )
 
 catkin_install_python(PROGRAMS scripts/rgb_stream_node.py
-                               scripts/stream_dataloader.py 
+                               ../dataloaders/ros_stream.py 
                       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Specify additional locations of header files
