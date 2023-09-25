@@ -15,9 +15,8 @@ class ROSStreamLoader(DataLoader):
         cam_info_topic = params['cam_info_topic']
         self.type = 'stream'
         
-        image_sub = rospy.Subscriber(rgb_topic, CompressedImage, self.callback)
+        self.image_sub = rospy.Subscriber(rgb_topic, CompressedImage, self.callback)
         
-        self.ts.registerCallback(self.callback)
         self.bridge = CvBridge()       
         self.buffer = []
         cam_params = {'width': 1280,
@@ -32,6 +31,7 @@ class ROSStreamLoader(DataLoader):
                       'p2': 0,
                       'k3': 0}
         self.camera = PinholeCamera(**cam_params)
+
 
     def callback(self, image):
         image = self.bridge.compressed_imgmsg_to_cv2(image)
