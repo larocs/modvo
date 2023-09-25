@@ -12,11 +12,14 @@ def main(args):
     dloader_class = config['dataloader']['class']
     module = importlib.import_module('modvo.dataloaders.'+dloader_class.rsplit('.',1)[0])
     attr = getattr(module, dloader_class.rsplit('.', 1)[-1])
-    dataloader = attr(**config['dataloader'])
+    #get params without class name
+    params = {k: v for k, v in config['dataloader'].items() if k != 'class'}
+    dataloader = attr(**params)
     
     det_class = config['detector']['class']
     module = importlib.import_module('modvo.detectors.'+det_class.rsplit('.', 1)[0])
     attr = getattr(module, det_class.rsplit('.', 1)[-1])
+    params = {k: v for k, v in config['detector'].items() if k != 'class'}
     detector = attr(**config['detector'])
 
     mat_params = {'camera': dataloader.get_camera()}
@@ -24,6 +27,7 @@ def main(args):
     mat_class = config['matcher']['class']
     module = importlib.import_module('modvo.matchers.'+mat_class.rsplit('.', 1)[0])
     attr = getattr(module, mat_class.rsplit('.', 1)[-1])
+    params = {k: v for k, v in config['matcher'].items() if k != 'class'}
     matcher = attr(**config['matcher'])
 
     voparams = {'camera': dataloader.get_camera(),
@@ -33,6 +37,7 @@ def main(args):
     vo_class = config['vo']['class']
     module = importlib.import_module('modvo.vo.'+vo_class.rsplit('.', 1)[0])
     attr = getattr(module, vo_class.rsplit('.', 1)[-1])
+    params = {k: v for k, v in config['vo'].items() if k != 'class'}
     vo = attr(**config['vo'])
 
     os.makedirs(args.output_path, exist_ok=True)
