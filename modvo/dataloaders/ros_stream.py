@@ -56,7 +56,10 @@ class ROSStreamLoader(DataLoader):
         return self
     
     def __next__(self):
-        return self.buffer.pop(0)
+        if len(self.buffer) > 0:
+            return self.buffer.pop(0)
+        else:
+            raise StopIteration
     
     def run(self):
         while not rospy.is_shutdown():

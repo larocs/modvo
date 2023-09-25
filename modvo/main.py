@@ -52,6 +52,7 @@ def main(args):
     elif dataloader.type == 'stream':
         dataloader.run()
         while True:
+            print('reading cam stream')
             img = next(dataloader)
             R, t = vo.track(img)
         
