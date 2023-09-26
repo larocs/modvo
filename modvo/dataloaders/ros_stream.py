@@ -32,8 +32,9 @@ class ROSStreamLoader(DataLoader):
                       'p2': 0,
                       'k3': 0}
         self.camera = PinholeCamera(**cam_params)
-
-
+        self.rate = rospy.Rate(self.frame_rate)
+        self.is_running = False
+        
     def callback(self, image):
         image = self.bridge.compressed_imgmsg_to_cv2(image)
         self.buffer.append(image)
@@ -49,9 +50,16 @@ class ROSStreamLoader(DataLoader):
         else:
             return None
     
+    def finish(self):
+        self.is_running = False
+        self.image_sub.unregister()
+
     def run(self):
+        self.is_running = True
+        rospy.on_shutdown(self.finish)
         while not rospy.is_shutdown():
-                rospy.sleep(0.01)
+            self.rate.sleep()
+        self.is_running = False
     
     def get_timestamp(self):
         return rospy.Time.now().to_sec()

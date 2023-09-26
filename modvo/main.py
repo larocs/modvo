@@ -51,8 +51,7 @@ def main(args):
                 file=log_fopen)
     elif dataloader.type == 'stream':
         dataloader.run()
-        while True:
-            print('reading cam stream')
+        while dataloader.is_running:
             img = next(dataloader)
             if(img is None):
                 continue
