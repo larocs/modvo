@@ -11,6 +11,7 @@ class ROSStreamLoader(DataLoader):
     def __init__(self, **params):
         rospy.init_node('ros_stream_dataloader', anonymous=True)
         self.buffer_size = params['buffer_size']
+        self.frame_rate = params['frame_rate']
         rgb_topic = params['rgb_topic']
         cam_info_topic = params['cam_info_topic']
         self.type = 'stream'
@@ -46,7 +47,7 @@ class ROSStreamLoader(DataLoader):
         if len(self.buffer) > 0:
             return self.buffer.pop(0)
         else:
-            raise StopIteration
+            return None
     
     def run(self):
         while not rospy.is_shutdown():

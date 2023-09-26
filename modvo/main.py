@@ -2,7 +2,7 @@ import os
 import importlib
 import argparse
 import yaml
-
+import time
 
 def main(args):
     with open(args.pipeline_config, 'r') as f:
@@ -54,12 +54,15 @@ def main(args):
         while True:
             print('reading cam stream')
             img = next(dataloader)
+            if(img is None):
+                continue
             R, t = vo.track(img)
         
             print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
                 R[1, 0], R[1, 1], R[1, 2], t[1, 0],
                 R[2, 0], R[2, 1], R[2, 2], t[2, 0],
                 file=log_fopen)
+            time.sleep(1/dataloader.frame_rate)
 
 def parse_args():
     parser = argparse.ArgumentParser()
