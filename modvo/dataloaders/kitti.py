@@ -14,9 +14,11 @@ class KITTILoader(DataLoader):
         self.type = 'dataset'
         self.index = 0
         self.set_camera()
+        self.is_running = True
 
     def __next__(self):
         if(self.index > self.size):
+            self.is_running = False
             raise StopIteration
         else:
             file_name = os.path.join(self.root_path, 'sequences', self.sequence,

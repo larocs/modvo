@@ -8,6 +8,7 @@ class DataLoader(ABC):
         self.camera = None
         self.size = None
         self.index = 0
+        self.is_running = False
 
     def __iter__(self):
         return self

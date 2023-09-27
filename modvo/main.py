@@ -47,29 +47,37 @@ def main(args):
     os.makedirs(args.output_path, exist_ok=True)
     log_fopen = open(os.path.join(args.output_path, args.trajectory_file), mode='a')
     
-    if dataloader.type == 'dataset':
-        for i, img  in enumerate(dataloader):
-            print(i,'/', len(dataloader))
-            R, t = vo.track(img)
-        
-            print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
-                R[1, 0], R[1, 1], R[1, 2], t[1, 0],
-                R[2, 0], R[2, 1], R[2, 2], t[2, 0],
-                file=log_fopen)
-            
-    elif dataloader.type == 'stream':
-        while dataloader.is_running:
-            img = next(dataloader)
-            if(img is None):
-                continue
-            print('img ', img.shape)
-
-            R, t = vo.track(img)
-            print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
-                R[1, 0], R[1, 1], R[1, 2], t[1, 0],
-                R[2, 0], R[2, 1], R[2, 2], t[2, 0],
-                file=log_fopen)
+    if args.enable_gui:
+        import numpy as np
+        from modvo.maps.kf_based import Frame
+        from modvo.gui.viewer import GUIDrawer
+        drawer = GUIDrawer()
+        frames = []
     
+    while dataloader.is_running:
+        image = next(dataloader)
+        if(image is None):
+            continue
+        print('img shape ', image.shape)
+        R, t = vo.track(image)
+        if args.enable_gui:
+            f = Frame(image)
+            frame_pose = np.eye(4)
+            frame_pose[:3,:3] = R
+            frame_pose[:3,3] = t.flatten()
+            f.pose = frame_pose
+            frames.append(f)
+            drawer.draw_trajectory(frames)
+        if(dataloader.type == 'dataset'):
+            i = dataloader.index
+            print(i,'/', len(dataloader))
+        else:
+            print('frame ', dataloader.index)
+        
+        print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
+              R[1, 0], R[1, 1], R[1, 2], t[1, 0],
+              R[2, 0], R[2, 1], R[2, 2], t[2, 0],
+              file=log_fopen)    
     print("Exiting...")
     sys.exit(0)
 
@@ -78,8 +86,7 @@ def parse_args():
     parser.add_argument('pipeline_config', type=str, help='Path to the pipeline configuration file')
     parser.add_argument('--output_path', type=str, default = '/root/modvo/results/', help='path to save all outputs')
     parser.add_argument('--trajectory_file', type=str, default = 'trajectory.txt', help='name of the trajectory file')
-    #parser.add_argument('--save_kpts_viz', action='store_true', help='save keypoints visualization')
-    #parser.add_argument('--save_match_viz', action='store_true', help='save matching visualization')
+    parser.add_argument('--enable_gui', action='store_true', help='use this flag to enable gui')
 
     args = parser.parse_args()
     return args
