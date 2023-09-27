@@ -27,6 +27,7 @@ class ROSStreamLoader(DataLoader):
         self.camera = None
         self.rate = rospy.Rate(self.frame_rate)
         self.is_running = False
+        self.index = 0
         print('Waiting for Camera Info Topic...')
         rospy.wait_for_message(cam_info_topic, CameraInfo, timeout=10)
 
@@ -50,6 +51,7 @@ class ROSStreamLoader(DataLoader):
 
 
     def image_callback(self, image):
+        self.index += 1
         image = self.bridge.compressed_imgmsg_to_cv2(image)
         self.buffer.put(image)
         if self.buffer.full():
