@@ -1,8 +1,8 @@
 import os
+import sys
 import importlib
 import argparse
 import yaml
-import time
 
 def main(args):
     with open(args.pipeline_config, 'r') as f:
@@ -10,6 +10,7 @@ def main(args):
 
     #loading classes
     dloader_class = config['dataloader']['class']
+    print('Dataloader %s' % dloader_class)
     module = importlib.import_module('modvo.dataloaders.'+dloader_class.rsplit('.',1)[0])
     attr = getattr(module, dloader_class.rsplit('.', 1)[-1])
     #get params without class name
@@ -17,22 +18,27 @@ def main(args):
     dataloader = attr(**params)
     
     det_class = config['detector']['class']
+    print('Detector %s' % det_class)
     module = importlib.import_module('modvo.detectors.'+det_class.rsplit('.', 1)[0])
     attr = getattr(module, det_class.rsplit('.', 1)[-1])
     params = {k: v for k, v in config['detector'].items() if k != 'class'}
     detector = attr(**params)
 
     mat_class = config['matcher']['class']
+    print('Matcher %s' % mat_class)
     module = importlib.import_module('modvo.matchers.'+mat_class.rsplit('.', 1)[0])
     attr = getattr(module, mat_class.rsplit('.', 1)[-1])
     params = {k: v for k, v in config['matcher'].items() if k != 'class'}
     matcher = attr(**params)
-
+    if(dataloader.get_camera() is None):
+        print('Dataloader camera not found')
+        sys.exit(0)
     voparams = {'camera': dataloader.get_camera(),
                 'detector': detector,
                 'matcher': matcher}
     config['vo'].update(voparams)  
     vo_class = config['vo']['class']
+    print('VO %s' % vo_class)
     module = importlib.import_module('modvo.vo.'+vo_class.rsplit('.', 1)[0])
     attr = getattr(module, vo_class.rsplit('.', 1)[-1])
     params = {k: v for k, v in config['vo'].items() if k != 'class'}
@@ -40,6 +46,7 @@ def main(args):
 
     os.makedirs(args.output_path, exist_ok=True)
     log_fopen = open(os.path.join(args.output_path, args.trajectory_file), mode='a')
+    
     if dataloader.type == 'dataset':
         for i, img  in enumerate(dataloader):
             print(i,'/', len(dataloader))
@@ -49,19 +56,22 @@ def main(args):
                 R[1, 0], R[1, 1], R[1, 2], t[1, 0],
                 R[2, 0], R[2, 1], R[2, 2], t[2, 0],
                 file=log_fopen)
+            
     elif dataloader.type == 'stream':
-        dataloader.run()
         while dataloader.is_running:
             img = next(dataloader)
             if(img is None):
                 continue
+            print('img ', img.shape)
+
             R, t = vo.track(img)
-        
             print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
                 R[1, 0], R[1, 1], R[1, 2], t[1, 0],
                 R[2, 0], R[2, 1], R[2, 2], t[2, 0],
                 file=log_fopen)
-            time.sleep(1/dataloader.frame_rate)
+    
+    print("Exiting...")
+    sys.exit(0)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -78,8 +88,3 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     main(args)
-
-
-
-
-    
