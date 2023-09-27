@@ -21,16 +21,18 @@ class ROSStreamLoader(DataLoader):
         self.type = 'stream'
         self.camera_info_sub = rospy.Subscriber(cam_info_topic, CameraInfo, self.camera_info_callback)
         self.image_sub = rospy.Subscriber(rgb_topic, CompressedImage, self.image_callback)
-        print('Waiting for Camera Info Topic...')
-        rospy.wait_for_message(cam_info_topic, CameraInfo, timeout=10)
-
+        
         self.bridge = CvBridge()
         self.buffer = Queue(self.buffer_size)
         self.camera = None
         self.rate = rospy.Rate(self.frame_rate)
         self.is_running = False
+        print('Waiting for Camera Info Topic...')
+        rospy.wait_for_message(cam_info_topic, CameraInfo, timeout=10)
+
         self.loader_thread = Thread(target = self.run, daemon=True)
         self.loader_thread.start()
+
     
     def camera_info_callback(self, cam_info):
         cam_params = {'width': cam_info.width,
