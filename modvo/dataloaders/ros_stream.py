@@ -23,7 +23,7 @@ class ROSStreamLoader(DataLoader):
         self.image_sub = rospy.Subscriber(rgb_topic, CompressedImage, self.image_callback)
         
         self.bridge = CvBridge()
-        self.buffer = Queue(self.buffer_size)
+        self.buffer = []
         self.camera = None
         self.rate = rospy.Rate(self.frame_rate)
         self.is_running = False
@@ -33,8 +33,7 @@ class ROSStreamLoader(DataLoader):
 
         self.loader_thread = Thread(target = self.run, daemon=True)
         self.loader_thread.start()
-
-    
+  
     def camera_info_callback(self, cam_info):
         cam_params = {'width': cam_info.width,
                       'height': cam_info.height,
@@ -49,32 +48,28 @@ class ROSStreamLoader(DataLoader):
                       'k3': 0}
         self.camera = PinholeCamera(**cam_params)
 
-
     def image_callback(self, image):
         self.index += 1
         image = self.bridge.compressed_imgmsg_to_cv2(image)
-        self.buffer.put(image)
-        if self.buffer.full():
-            self.buffer.get()
+        self.buffer.append(image)
+        if len(self.buffer) > self.buffer_size:
+            self.buffer.pop(0)
 
     def __iter__(self):
         return self
     
     def __next__(self):
-        if not self.buffer.empty():
-            return self.buffer.get()
+        if len(self.buffer) > 0:
+            return self.buffer.pop(0)
         else:
             return None
-    
-    def finish(self):
-        self.is_running = False
 
     def run(self):
         print('Running ROS Stream Dataloader')
         self.is_running = True
         while not rospy.is_shutdown():
             self.rate.sleep()
-        self.finish()
+        self.is_running = False
         print('ROS Stream Dataloader finished')
         
     def get_timestamp(self):
