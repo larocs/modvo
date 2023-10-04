@@ -1,3 +1,4 @@
+import cv2
 import pangolin
 import OpenGL.GL as gl
 import numpy as np
@@ -10,6 +11,7 @@ class MapElement():
 class TrajectoryElement():
     def __init__(self):
         self.poses = None
+        self.images = None
 
 class GUIDrawer():
     """
@@ -48,7 +50,7 @@ class GUIDrawer():
         self.dcam = pangolin.CreateDisplay()
         self.dcam.SetBounds(0.0, 1.0, 0.0, 1.0, -width/height)
         self.dcam.SetHandler(pangolin.Handler3D(self.scam))
-
+        
         self.Twc = pangolin.OpenGlMatrix()
         self.Twc.SetIdentity()
         
@@ -74,6 +76,9 @@ class GUIDrawer():
             gl.glColor3f(0.0, 1.0, 0.0)
             pangolin.DrawCameras(self.current_traj.poses[-1:])    
             self.Twc.m = self.current_traj.poses[-1]
+            
+            cv2.imshow('current image', self.current_traj.images[-1])
+            cv2.waitKey(1)
 
         while(not self.map_queue.empty()):
             self.current_map = self.map_queue.get()
@@ -103,9 +108,9 @@ class GUIDrawer():
             return
         trajectory = TrajectoryElement()
         trajectory.poses = [np.array(f.pose) for f in frames]
+        trajectory.images = [f.image for f in frames]
         self.trajectory_queue.put(trajectory)
     
-
     def draw_map_points(self, points):
         if self.map_queue is None:
             return
