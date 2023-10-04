@@ -77,7 +77,8 @@ class GUIDrawer():
             pangolin.DrawCameras(self.current_traj.poses[-1:])    
             self.Twc.m = self.current_traj.poses[-1]
             
-            cv2.imshow('current image', self.current_traj.images[-1])
+            #show current image
+            cv2.imshow('Mod-VO: current image', self.current_traj.image)
             cv2.waitKey(1)
 
         while(not self.map_queue.empty()):
@@ -108,7 +109,7 @@ class GUIDrawer():
             return
         trajectory = TrajectoryElement()
         trajectory.poses = [np.array(f.pose) for f in frames]
-        trajectory.images = [f.image for f in frames]
+        trajectory.image = frames[-1].image
         self.trajectory_queue.put(trajectory)
     
     def draw_map_points(self, points):
