@@ -28,10 +28,10 @@ class RGBStreamingNode:
                                 frameHeightRGB   = height,
                                 frameRateRGB	 = rate,)
 
-        self.intrinsics = [912.469360351562, 0, 638.081298828125,
-                           0, 912.747497558594, 912.469360351562,
-                           0, 0, 1] #parameters taken with rs-enumerate-devices -c
-
+        self.intrinsics = [967.22066, 0, 656.38549,
+                           0, 966.60926, 324.16049,
+                           0, 0, 1]
+        self.distortion = [0.123865, -0.147635, -0.006330, 0.010211, 0.000000]
 
     def run(self):
         rospy.on_shutdown(self.terminate_camera)
@@ -58,6 +58,7 @@ class RGBStreamingNode:
         cam_info_msg.height = self.rgb.frameHeightRGB
         cam_info_msg.distortion_model = 'plumb_bob'
         cam_info_msg.K = self.intrinsics
+        cam_info_msg.D  = self.distortion
         self.camInfoPub.publish(cam_info_msg)
         
         
