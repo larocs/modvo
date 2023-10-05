@@ -1,0 +1,29 @@
+dataloader:
+  class: ros_stream.ROSStreamLoader
+  rgb_topic: '/qcar/rgb/compressed'
+  cam_info_topic: '/qcar/rgb/camera_info'
+  buffer_size: 5
+  frame_rate: 10
+
+detector:
+  class: superpoint.SuperPointDetector
+  descriptor_dim: 256
+  nms_radius: 4
+  keypoint_threshold: 0.005
+  max_keypoints: -1
+  remove_borders: 4
+  path: 'modvo/thirdparty/SuperGluePretrainedNetwork/models/weights/superpoint_v1.pth'
+  device: 'cuda'
+
+matcher:
+  class: superglue.SuperglueMatcher
+  weights: 'outdoor'
+  device: 'cuda'
+  image_height: 720.0
+  image_width: 1280.0
+  path: 'modvo/thirdparty/SuperGluePretrainedNetwork/models/weights/superglue_outdoor.pth'
+
+
+vo:
+  class: frame_by_frame.FrameByFrameTracker
+  
