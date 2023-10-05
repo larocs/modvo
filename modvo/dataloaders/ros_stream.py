@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
 import rospy
-import message_filters
 from sensor_msgs.msg import CompressedImage, CameraInfo
 from cv_bridge import CvBridge
 from threading import Thread
-
-from multiprocessing import Process, Queue
 from modvo.dataloaders.dataloader import DataLoader
 from modvo.cameras.pinhole import PinholeCamera
 
