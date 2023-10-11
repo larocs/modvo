@@ -46,7 +46,9 @@ def main(args):
 
     os.makedirs(args.output_path, exist_ok=True)
     log_fopen = open(os.path.join(args.output_path, args.trajectory_file), mode='a')
-    
+    print('Enable GUI: ', args.enable_gui)
+    print('Save keypoints: ', args.save_keypoints)
+
     if args.enable_gui:
         import numpy as np
         from modvo.maps.kf_based import Frame
@@ -54,6 +56,10 @@ def main(args):
         drawer = GUIDrawer()
         frames = []
     
+    if args.save_keypoints:
+        import utils.viz as viz
+        os.makedirs(os.path.join(args.output_path, 'keypoints'), exist_ok=True)
+
     while dataloader.is_running:
         image = next(dataloader)
         if(image is None):
@@ -77,7 +83,13 @@ def main(args):
         print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
               R[1, 0], R[1, 1], R[1, 2], t[1, 0],
               R[2, 0], R[2, 1], R[2, 2], t[2, 0],
-              file=log_fopen)    
+              file=log_fopen)
+
+        if args.save_keypoints:
+            feats = detector.detectAndCompute(image)
+            image_kpts = viz.draw_keypoints(image, feats['keypoints'])
+            viz.save_image(image_kpts, os.path.join(args.output_path, 'keypoints', str(dataloader.index)+'.png'))
+          
     print("Exiting...")
     sys.exit(0)
 
@@ -87,7 +99,7 @@ def parse_args():
     parser.add_argument('--output_path', type=str, default = '/root/modvo/results/', help='path to save all outputs')
     parser.add_argument('--trajectory_file', type=str, default = 'trajectory.txt', help='name of the trajectory file')
     parser.add_argument('--enable_gui', action='store_true', help='use this flag to enable gui')
-
+    parser.add_argument('--save_keypoints', action='store_true', help='use this flag to save images with keypoints')
     args = parser.parse_args()
     return args
 

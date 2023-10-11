@@ -38,3 +38,9 @@ def draw_matches(image0, image1, kpts0, kpts1, scores=None):
         c = c.tolist()
         cv2.line(out, (x0, y0), (x1 + W0, y1), color=c, thickness=1, lineType=cv2.LINE_AA)
     return out
+
+def save_image(image, path):
+    cv2.imwrite(path, image)
+
+def open_image(path):
+    return cv2.imread(path)
