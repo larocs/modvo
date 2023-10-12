@@ -4,3 +4,6 @@
 [submodule "modvo/thirdparty/pangolin"]
 	path = modvo/thirdparty/pangolin
 	url = https://github.com/hudsonmartins/pangolin
+[submodule "modvo/thirdparty/LightGlue"]
+	path = modvo/thirdparty/LightGlue
+	url = https://github.com/hudsonmartins/LightGlue
