@@ -28,6 +28,7 @@ RUN pip install --no-cache-dir numpy \
                                torchvision\
                                opencv-python \
                                scikit-image \
-                               evo
+                               evo \
+                               kornia
 
 CMD ["bash"]
