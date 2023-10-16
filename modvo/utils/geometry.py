@@ -14,10 +14,10 @@ def pose_from_kpts(kpts0, kpts1, camera):
         - t: Output translation vector
     """
     # five-point algorithm to find E
-    E, mask = cv2.findEssentialMat(kpts1, kpts0, focal=1, pp=(0, 0),
-                                       method=cv2.RANSAC, prob=0.999, threshold=1.0)       
+    E, mask = cv2.findEssentialMat(kpts1, kpts0, focal=camera.fx, pp=(camera.cx, camera.cy),
+                                       method=cv2.RANSAC, prob=0.999, threshold=1.0)
     #compute pose up to scale!
-    _, R, t, _ = cv2.recoverPose(E, kpts1, kpts0, focal=1, pp=(0, 0))
+    _, R, t, _ = cv2.recoverPose(E, kpts1, kpts0, focal=camera.fx, pp=(camera.cx, camera.cy))
     return mask, R, t
 
 
