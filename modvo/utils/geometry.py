@@ -1,5 +1,5 @@
 import cv2
-   
+from scipy.spatial.transform import Rotation   
 
 def pose_from_kpts(kpts0, kpts1, camera):
     """
@@ -38,3 +38,15 @@ def triangulate_points(kpts0, kpts1, P1, P2):
     points3D = points3D_h[:3, :] / points3D_h[3, :]
 
     return points3D.T
+
+def matrix_to_quaternion(R):
+    '''
+    Convert rotation matrix to quaternion
+    Parameters:
+        - R: 3x3 rotation matrix
+    Returns:
+        - q: 4x1 quaternion
+    '''
+    r = Rotation.from_matrix(R)
+    q = r.as_quat()
+    return q

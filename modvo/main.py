@@ -60,8 +60,15 @@ def main(args):
         import utils.viz as viz
         os.makedirs(os.path.join(args.output_path, 'keypoints'), exist_ok=True)
 
+    if args.output_format == 'tum':
+        from modvo.utils.geometry import matrix_to_quaternion
+
     while dataloader.is_running:
-        image = next(dataloader)
+        try:
+            image = next(dataloader)    
+        except StopIteration:
+            print("Finishing...")
+            break
         if(image is None):
             continue
         print('img shape ', image.shape)
@@ -80,17 +87,24 @@ def main(args):
         else:
             print('frame ', dataloader.index)
         
-        print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
-              R[1, 0], R[1, 1], R[1, 2], t[1, 0],
-              R[2, 0], R[2, 1], R[2, 2], t[2, 0],
-              file=log_fopen)
+        if args.output_format == 'kitti':
+            print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
+                 R[1, 0], R[1, 1], R[1, 2], t[1, 0],
+                R[2, 0], R[2, 1], R[2, 2], t[2, 0],
+                file=log_fopen)
+        elif args.output_format == 'tum':
+            timestamp = dataloader.get_timestamp()
+            q = matrix_to_quaternion([[R[0, 0], R[0, 1], R[0, 2]],
+                                        [R[1, 0], R[1, 1], R[1, 2]],
+                                        [R[2, 0], R[2, 1], R[2, 2]]])
+            print(str(timestamp), t[0, 0], t[1, 0], t[2, 0], q[0], q[1], q[2], q[3],
+                file=log_fopen)
 
         if args.save_keypoints:
             feats = detector.detectAndCompute(image)
             image_kpts = viz.draw_keypoints(image, feats['keypoints'])
             viz.save_image(image_kpts, os.path.join(args.output_path, 'keypoints', str(dataloader.index)+'.png'))
           
-    print("Exiting...")
     sys.exit(0)
 
 def parse_args():
@@ -98,6 +112,7 @@ def parse_args():
     parser.add_argument('pipeline_config', type=str, help='Path to the pipeline configuration file')
     parser.add_argument('--output_path', type=str, default = '/root/modvo/results/', help='path to save all outputs')
     parser.add_argument('--trajectory_file', type=str, default = 'trajectory.txt', help='name of the trajectory file')
+    parser.add_argument('--output_format', type=str, default = 'kitti', help='file format to save trajectory (either kitti or tum)')
     parser.add_argument('--enable_gui', action='store_true', help='use this flag to enable gui')
     parser.add_argument('--save_keypoints', action='store_true', help='use this flag to save images with keypoints')
     args = parser.parse_args()
