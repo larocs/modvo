@@ -3,7 +3,7 @@ import numpy as np
 import kornia
 import torch
 from modvo.detectors.detector import Detector
-from modvo.utils import tools
+torch.set_grad_enabled(False)
 
 
 class DiskDetector(Detector):  
@@ -29,12 +29,12 @@ class DiskDetector(Detector):
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         
         image_tensor = torch.from_numpy(image/255.).float()[None].to(self.device)
-        
-        pred = self.detector(image_tensor, 
-                            n=self.max_keypoints, 
-                            window_size=self.window_size, 
-                            score_threshold=self.score_threshold, 
-                            pad_if_not_divisible=self.pad_if_not_divisible)
+        with torch.no_grad():
+            pred = self.detector(image_tensor, 
+                                n=self.max_keypoints, 
+                                window_size=self.window_size, 
+                                score_threshold=self.score_threshold, 
+                                pad_if_not_divisible=self.pad_if_not_divisible)
         
         kpts = torch.stack([p.keypoints for p in pred], 0).squeeze(0)
         scores = torch.stack([p.detection_scores for p in pred],0).squeeze(0)
@@ -58,5 +58,6 @@ if __name__ == '__main__':
     det = DiskDetector(**params)
     features = det.detectAndCompute(img0)
     print('kpts ', features['keypoints'].shape)
+    print('descs ', features['descriptors'].shape)
     kpts_img = viz.draw_keypoints(img0, features['keypoints'], color='random')
     cv2.imwrite('modvo/kpts_test.png', kpts_img)
