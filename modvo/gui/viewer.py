@@ -78,7 +78,8 @@ class GUIDrawer():
             self.Twc.m = self.current_traj.poses[-1]
             
             #show current image
-            cv2.imshow('Mod-VO: current image', self.current_traj.image)
+            disp_img = cv2.resize(self.current_traj.image, (640, 480))
+            cv2.imshow('Mod-VO: current image', disp_img)
             cv2.waitKey(1)
 
         while(not self.map_queue.empty()):
@@ -109,7 +110,7 @@ class GUIDrawer():
             return
         trajectory = TrajectoryElement()
         trajectory.poses = [np.array(f.pose) for f in frames]
-        trajectory.image = frames[-1].image
+        trajectory.image = frames[-1].image.copy()
         self.trajectory_queue.put(trajectory)
     
     def draw_map_points(self, points):
