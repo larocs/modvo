@@ -7,7 +7,7 @@ This repository contains the code for MODVO, a modular VO pipeline written in Py
 MODVO was tested with Python 3.6 or higher. It can be installed using pip:
 
 ```bash
-    git clone https://github.com/hudsonmartins/modvo
+    git clone [https://github.com/hudsonmartins/modvo](https://github.com/larocs/modvo)
     cd modvo
     python -m pip install -e .
 ```
