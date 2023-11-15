@@ -13,9 +13,9 @@ class RGBStreamingNode:
         rospy.init_node('rbg_streaming_node')
 
         # RGB camera parameters
-        width  = 1280
-        height = 720
-        rate = 30
+        width  = 1920
+        height = 1080
+        rate = 15
 
         self.rate = rospy.Rate(rate)
 
@@ -27,9 +27,9 @@ class RGBStreamingNode:
                                 frameWidthRGB    = width,
                                 frameHeightRGB   = height,
                                 frameRateRGB	 = rate,)
-
-        self.intrinsics = [912.469360351562, 0, 638.081298828125,
-                           0, 912.747497558594, 350.80615234375,
+        #parameters collected with rs-enumerate-devices -c
+        self.intrinsics = [1368.70397949219, 0, 957.121948242188,
+                           0, 1369.12121582031, 526.209228515625,
                            0, 0, 1]
         self.distortion = [0., 0., 0., 0., 0.]
 
