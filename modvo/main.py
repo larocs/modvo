@@ -60,10 +60,17 @@ def main(args):
         import utils.viz as viz
         os.makedirs(os.path.join(args.output_path, 'keypoints'), exist_ok=True)
 
+    if args.save_matches:
+        import utils.viz as viz
+        os.makedirs(os.path.join(args.output_path, 'matches'), exist_ok=True)
+        last_image = None
+
     if args.output_format == 'tum':
         from modvo.utils.geometry import matrix_to_quaternion
-
+    
+   
     while dataloader.is_running:
+        print("-"*50)
         try:
             image = next(dataloader)    
         except StopIteration:
@@ -73,6 +80,7 @@ def main(args):
             continue
         print('img shape ', image.shape)
         R, t = vo.track(image)
+        
         if args.enable_gui:
             f = Frame(image)
             frame_pose = np.eye(4)
@@ -99,12 +107,23 @@ def main(args):
                                         [R[2, 0], R[2, 1], R[2, 2]]])
             print(str(timestamp), t[0, 0], t[1, 0], t[2, 0], q[0], q[1], q[2], q[3],
                 file=log_fopen)
-
+        
         if args.save_keypoints:
             feats = detector.detectAndCompute(image)
             image_kpts = viz.draw_keypoints(image, feats['keypoints'])
             viz.save_image(image_kpts, os.path.join(args.output_path, 'keypoints', str(dataloader.index)+'.png'))
-          
+        
+        if args.save_matches:
+            if(last_image is not None):
+                feats1 = detector.detectAndCompute(last_image)
+                feats2 = detector.detectAndCompute(image)
+                matches = matcher.match(feats1, feats2)
+                image_matches = viz.draw_matches(last_image, image, feats1['keypoints'][matches['matches'][:,0]], 
+                                                 feats2['keypoints'][matches['matches'][:,1]], 
+                                                 matches['scores']/matches['scores'].max())
+                viz.save_image(image_matches, os.path.join(args.output_path, 'matches', str(dataloader.index)+'.png'))
+            last_image = image.copy()
+
     sys.exit(0)
 
 def parse_args():
@@ -115,6 +134,8 @@ def parse_args():
     parser.add_argument('--output_format', type=str, default = 'kitti', help='file format to save trajectory (either kitti or tum)')
     parser.add_argument('--enable_gui', action='store_true', help='use this flag to enable gui')
     parser.add_argument('--save_keypoints', action='store_true', help='use this flag to save images with keypoints')
+    parser.add_argument('--save_matches', action='store_true', help='use this flag to save images with matches')
+
     args = parser.parse_args()
     return args
 
