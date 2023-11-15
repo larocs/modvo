@@ -12,13 +12,14 @@ def pose_from_kpts(kpts0, kpts1, camera):
         - mask:	Output array of N elements, every element of which is set to 0 for outliers and to 1 for the other points
         - R: Output rotation matrix
         - t: Output translation vector
+        - n_inliers: Number of inliers
     """
     # five-point algorithm to find E
     E, mask = cv2.findEssentialMat(kpts1, kpts0, focal=camera.fx, pp=(camera.cx, camera.cy),
                                        method=cv2.RANSAC, prob=0.999, threshold=1.0)
     #compute pose up to scale!
-    _, R, t, _ = cv2.recoverPose(E, kpts1, kpts0, focal=camera.fx, pp=(camera.cx, camera.cy))
-    return mask, R, t
+    n_inliers, R, t, _ = cv2.recoverPose(E, kpts1, kpts0, focal=camera.fx, pp=(camera.cx, camera.cy))
+    return mask, R, t, n_inliers
 
 
 def triangulate_points(kpts0, kpts1, P1, P2):

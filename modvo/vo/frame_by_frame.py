@@ -13,6 +13,9 @@ class FrameByFrameTracker(Tracker):
         self.feats1 = None
         self.index = 0
         self.img0, self.img1 = None, None
+        self.n_matches = 0
+        self.n_inliers = 0
+
 
     def track(self, image):
         if(self.index == 0):
@@ -23,23 +26,27 @@ class FrameByFrameTracker(Tracker):
         else:
             self.img1 = image
             self.feats1 = self.detector.detectAndCompute(image)
-            matches = self.matcher.match(self.feats0, self.feats1)
             
+            matches = self.matcher.match(self.feats0, self.feats1)
+            self.n_matches = len(matches['matches'])
+            print('n matches ', len(matches['matches']))
             #get matched kpts
             kpts0 = self.feats0['keypoints'][matches['matches'][:,0]] 
             kpts1 = self.feats1['keypoints'][matches['matches'][:,1]]
-            
-            mask, R, t = pose_from_kpts(kpts0, kpts1, self.camera)
+            mask, R, t, self.n_inliers = pose_from_kpts(kpts0, kpts1, self.camera)
+            print('inliers ', self.n_inliers)
+
             self.t = self.t + self.R.dot(t)
             self.R = R.dot(self.R)
             
             self.feats0 = self.feats1
             self.img0 = self.img1
-        
+            
         self.index += 1
 
         return self.R, self.t
-
+    
+    
 if __name__ == '__main__':
     from modvo.detectors import orb, superpoint
     from modvo.matchers.bf import BFMatcher
