@@ -5,6 +5,7 @@ This repository contains the code for MODVO, a modular VO pipeline written in Py
 
 ## Installation
 
+### Using pip
 MODVO was tested with Python 3.6 or higher. It can be installed using pip:
 
 ```bash
@@ -24,6 +25,14 @@ If you plan to use the GUI to visualize the trajectories, you also need to initi
 
 ```bash
     git submodule update --init --recursive modvo/thirdparty/pangolin
+```
+
+### Using Docker
+
+If you prefer to use Docker, you can build a Docker image with the following command:
+
+```bash
+    docker build -t modvo .
 ```
 
 ## Usage
@@ -83,3 +92,13 @@ To add a new module to MODVO you need to create a new Python file inside the `mo
                          'scores': scores}
         return self.features
 ```
+
+## References and Inspiration
+
+This repository was inspired by the following works:
+
+[ORB-SLAM2](https://github.com/raulmur/ORB_SLAM2)
+[pyslam](https://github.com/luigifreda/pyslam)
+[Python-VO](https://github.com/Shiaoming/Python-VO)
+[evo](https://github.com/MichaelGrupp/evo)
+[RTAB-Map](https://github.com/introlab/rtabmap)
