@@ -98,7 +98,11 @@ To add a new module to MODVO you need to create a new Python file inside the `mo
 This repository was inspired by the following works:
 
 [ORB-SLAM2](https://github.com/raulmur/ORB_SLAM2)
+
 [pyslam](https://github.com/luigifreda/pyslam)
+
 [Python-VO](https://github.com/Shiaoming/Python-VO)
+
 [evo](https://github.com/MichaelGrupp/evo)
+
 [RTAB-Map](https://github.com/introlab/rtabmap)
