@@ -1,5 +1,7 @@
 import cv2
+import numpy as np
 from scipy.spatial.transform import Rotation   
+from modvslam.utils.tools import get_index
 
 def pose_from_kpts(kpts0, kpts1, camera):
     """
@@ -39,6 +41,48 @@ def triangulate_points(kpts0, kpts1, P1, P2):
     points3D = points3D_h[:3, :] / points3D_h[3, :]
 
     return points3D.T
+
+
+def match_3D_to_2D(frame, map_points, max_reproj_distance, desc_norm_type, max_descriptor_distance):
+    '''
+        Matches 3D points to 2D points in the current frame
+    '''
+    #project 3D points into current frame
+    points3D = np.array([p.coordinates for p in map_points])
+    mask1, projected_pts = frame.project_points_to_frame(points3D)
+    map_points = np.array(map_points)[mask1]
+    mask2, projected_pts =  frame.camera.get_visible_pts(projected_pts[mask1])
+    map_points = map_points[mask2]
+
+    
+    #get feature scale for all levels
+    scales = frame.detector.getScaleLevels()
+    
+    radiuses = max_reproj_distance * scales
+    proj_ids = []
+    feat_ids = []
+    
+    for i, pt in enumerate(projected_pts):
+        # Search for matching keypoints within the given radius
+        indices = (abs(frame.features['keypoints'][:, 0] - pt[0]) < radiuses[frame.features['octaves']]) & \
+                    (abs(frame.features['keypoints'][:, 1] - pt[1]) < radiuses[frame.features['octaves']])
+        if(sum(indices) == 0):
+            continue
+        # Compute the distances between the projected point and the descriptors of the matching keypoints
+        distances = [cv2.norm(desc, map_points[i].get_descriptor(), desc_norm_type) 
+                        for desc in frame.features['descriptors'][indices]]
+        # Find the closest matching keypoint
+        min_dist_idx = np.argmin(np.array(distances))
+        match_idx = get_index(frame.features['descriptors'], frame.features['descriptors'][indices][min_dist_idx])
+        
+        min_dist = np.min(np.array(distances))
+        if(match_idx != None and match_idx not in feat_ids):
+            if(min_dist < max_descriptor_distance):
+                proj_ids.append(i)
+                feat_ids.append(match_idx)
+                print('matching ', i, ' to ', match_idx, ' with dist ', min_dist)
+    return proj_ids, feat_ids
+
 
 def matrix_to_quaternion(R):
     '''
