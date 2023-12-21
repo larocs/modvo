@@ -75,7 +75,26 @@ class Frame(F):
     def set_features(self, features):
         assert(isinstance(features, dict))
         self.features = features
+        self.keypoints = self.features['keypoints']
     
+    @property
+    def keypoints(self):
+        return self._kpts
+
+    @property
+    def keypoints_u(self):
+        return self._kpts_u
+    
+    @property
+    def keypoints_un(self):
+        return self._kpts_un
+    
+    @keypoints.setter
+    def keypoints(self, kpts):
+        self._kpts = kpts
+        if(self.camera is not None):
+            self._kpts_u = self.camera.undistort_keypoints(self._kpts)
+            self._kpts_un = self.camera.normalize_keypoints(self._kpts_u)
 
     def set_map_points(self, points):
         self.map_points = points
