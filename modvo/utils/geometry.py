@@ -52,7 +52,7 @@ def match_3D_to_2D(frame, map_points, max_reproj_distance, desc_norm_type, max_d
     #project 3D points into current frame
     points3D = np.array([p.coordinates for p in map_points])
     mask1, projected_pts = frame.project_points_to_frame(points3D)
-    mask2, _ =  frame.camera.get_visible_pts(projected_pts[mask1])
+    mask2, _ =  frame.camera.get_visible_pts(projected_pts)
     
     #get feature scale for all levels
     scales = frame.detector.getScaleLevels()
