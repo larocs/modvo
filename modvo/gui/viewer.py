@@ -7,11 +7,8 @@ from multiprocessing import Process, Queue, Value
 class MapElement():
     def __init__(self):
         self.points = None
-
-class TrajectoryElement():
-    def __init__(self):
         self.poses = None
-        self.images = None
+        self.image = None
 
 class GUIDrawer():
     """
@@ -19,10 +16,8 @@ class GUIDrawer():
     """
     def __init__(self):
         self.window_size = (1024, 550)
-        self.trajectory_queue = Queue()
-        self.map_queue = Queue()
-        self.current_traj = None
-        self.current_map = None
+        self.q = Queue()
+        self.data = None
         self.drawer_process = Process(target=self.viewer_thread)
         self.drawer_process.daemon = True
         self.drawer_process.start()
@@ -57,8 +52,8 @@ class GUIDrawer():
 
     def update(self):
 
-        while(not self.trajectory_queue.empty()):
-            self.current_traj = self.trajectory_queue.get()
+        while(not self.q.empty()):
+            self.data = self.q.get()
         self.scam.Follow(self.Twc, True)
 
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
@@ -66,30 +61,27 @@ class GUIDrawer():
 
         self.dcam.Activate(self.scam)
 
-        if(self.current_traj is not None):
-            if(len(self.current_traj.poses) > 1):
-                #draw the cameras in black
+        if(self.data is not None):
+            if(self.data.poses is not None):
+                if(len(self.data.poses) > 1):
+                    #draw the cameras in black
+                    gl.glColor3f(0.0, 0.0, 0.0)
+                    pangolin.DrawCameras(self.data.poses[:-1])
+                #current camera in green
+                gl.glColor3f(0.0, 1.0, 0.0)
+                pangolin.DrawCameras(self.data.poses[-1:])    
+                self.Twc.m = self.data.poses[-1]
+                
+            if(self.data.points is not None and len(self.data.points) > 0):
+                gl.glPointSize(5.0)
                 gl.glColor3f(0.0, 0.0, 0.0)
-                pangolin.DrawCameras(self.current_traj.poses[:-1])
-
-            #current camera in green
-            gl.glColor3f(0.0, 1.0, 0.0)
-            pangolin.DrawCameras(self.current_traj.poses[-1:])    
-            self.Twc.m = self.current_traj.poses[-1]
+                pangolin.DrawPoints(self.data.points)
             
-            #show current image
-            disp_img = cv2.resize(self.current_traj.image, (640, 480))
-            cv2.imshow('Mod-VO: current image', disp_img)
-            cv2.waitKey(1)
-
-        while(not self.map_queue.empty()):
-            self.current_map = self.map_queue.get()
-
-        if(self.current_map is not None and len(self.current_map.points) > 0):
-            gl.glPointSize(5.0)
-            gl.glColor3f(0.0, 0.0, 0.0)
-            pangolin.DrawPoints(self.current_map.points)
-
+            if(self.data.image is not None):
+                #show current image
+                disp_img = cv2.resize(self.data.image, (640, 480))
+                cv2.imshow('Mod-VO: current image', disp_img)
+                cv2.waitKey(1)
         pangolin.FinishFrame()
 
 
@@ -103,20 +95,17 @@ class GUIDrawer():
             self.update()
 
         print('Closing GUI...')
+        cv2.destroyAllWindows()
+
     
-    
-    def draw_trajectory(self, frames):
-        if self.trajectory_queue is None:
-            return
-        trajectory = TrajectoryElement()
-        trajectory.poses = [np.array(f.pose) for f in frames]
-        trajectory.image = frames[-1].image.copy()
-        self.trajectory_queue.put(trajectory)
-    
-    def draw_map_points(self, points):
-        if self.map_queue is None:
+    def draw_map(self, frames=None, points=None):
+        if self.q is None:
             return
         map_obj = MapElement()
-
-        map_obj.points = np.array([p.coordinates for p in points])
-        self.map_queue.put(map_obj)
+        if(frames is not None):
+            map_obj.poses = [np.array(f.pose) for f in frames]
+            map_obj.image = frames[-1].image.copy()
+        if(points is not None):
+            map_obj.points = np.array([p.coordinates for p in points])
+        self.q.put(map_obj)
+    
