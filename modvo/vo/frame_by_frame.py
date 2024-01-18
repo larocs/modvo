@@ -86,4 +86,4 @@ if __name__ == '__main__':
         frame_pose[:3,3] = t.flatten()
         f.pose = frame_pose
         frames.append(f)
-        gui.draw_trajectory(frames)
+        gui.draw_map(frames=frames)
