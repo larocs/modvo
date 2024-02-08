@@ -129,10 +129,11 @@ class Frame(F):
         points_f = self.camera.K @ points3D
         # Normalize the projected 2D points by the Z coordinate
         zs = points_f[-1]
-        points_f = points_f[:2]/zs
         mask = zs > 0
+        points_f = np.where(mask, points_f / zs, 0)
         return mask, points_f.T
 
+    
 
 class KFBasedMap(Map):
     def __init__(self, **params):
@@ -146,9 +147,9 @@ class KFBasedMap(Map):
 
     def add_keyframe(self, keyframe):
         assert(isinstance(keyframe, Frame))
-        self.keyframe_index = self.keyframe_index + 1
         keyframe.index = self.keyframe_index
         self.keyframes.append(keyframe)
+        self.keyframe_index = self.keyframe_index + 1
 
 
     def remove_keyframe(self, keyframe):
@@ -166,9 +167,10 @@ class KFBasedMap(Map):
 
     def add_point(self, point):
         assert(isinstance(point, Point))
-        self.point_index = self.point_index + 1
         point.index = self.point_index
         self.points.append(point)
+        self.point_index = self.point_index + 1
+        return point.index
 
 
     def add_points_from_coordinates(self, points):
@@ -176,17 +178,22 @@ class KFBasedMap(Map):
         Adds an array of points to the map
         Parameters:
            - points: array of points coordinates
+        Returns:
+           - indexes: array of indexes of the added points
         '''
+        indexes = []
         for p in points:
             point = Point(p[0], p[1], p[2])
-            self.add_point(point)
-
+            id = self.add_point(point)
+            indexes.append(id)
+        return indexes
+    
 
     def add_frame(self, frame):
         assert(isinstance(frame, F))
-        self.frame_index = self.frame_index + 1
         frame.index = self.frame_index
         self.frames.append(frame)
+        self.frame_index = self.frame_index + 1
 
 
     def remove_point(self, point):
@@ -207,6 +214,18 @@ class KFBasedMap(Map):
         self.frame_index = 0
         self.keyframe_index = 0
 
-
-    def find_bad_points(self):
-        pass
+            
+    def check_new_points(self, points3D, threshold=0.05):
+        '''
+        Checks if 3D points are already in the map
+        Parameters:
+            - points3D: a Nx3 array of 3D points
+        Returns:
+            - mask: Array of N elements, every element of which is set to 0 
+                    for points that are already in the map and to 1 for the other points
+        '''
+        mask = np.ones(points3D.shape[0], dtype=bool)
+        for p in self.points:
+            distances = np.linalg.norm(points3D - p.coordinates, axis=1)
+            mask = mask & (distances > threshold)
+        return mask

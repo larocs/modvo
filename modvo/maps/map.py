@@ -4,11 +4,13 @@ from abc import ABC, abstractmethod
 class Map(ABC):
     @abstractmethod
     def __init__(self, **params):
-        self.points = [None]
-        self.frames = [None]
+        self.points = []
+        self.frames = []
         self.point_index = 0
         self.frame_index = 0
 
+    def get_point(self, index):
+        return self.points[index]
 
     def get_points(self): 
         return self.points   

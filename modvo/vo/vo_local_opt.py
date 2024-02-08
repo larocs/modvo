@@ -5,7 +5,6 @@ from modvo.utils.geometry import pose_from_kpts, triangulate_points, match_3D_to
 from modvo.maps.kf_based import Frame, KFBasedMap
 from modvo.optimizers.g2o import G2OOptimizer
 
-from modvo.utils.viz import draw_keypoints
 
 class VOLocalOptimization(Tracker):
     def __init__(self, **params):
@@ -26,9 +25,7 @@ class VOLocalOptimization(Tracker):
         self.map = KFBasedMap()
         self.optimizer = G2OOptimizer()
         self.all_pts3D = []
-        self.vel = np.array([0, 0, 1.0])
-        
-        
+        self.vel = np.array([0, 0, 1.0])      
 
     def track(self, image):
         frame = Frame(image)
@@ -37,13 +34,14 @@ class VOLocalOptimization(Tracker):
         feats = self.detector.detectAndCompute(image)
         frame.set_features(feats)
         self.map.add_frame(frame)
-        frame.is_keyframe = True #all frames are keyframes in this approach
+        frame.is_keyframe = True #all frames are keyframes for now
         self.frame1 = frame
 
         if(self.index == 0):
             #First frame
-            self.R = np.identity(3)
-            self.t = np.zeros((3, 1))
+            self.R = np.eye(3)
+            self.t = np.zeros((3,1))
+
 
         elif(self.index == 1):
             self.feats0 = self.frame0.features
@@ -76,33 +74,49 @@ class VOLocalOptimization(Tracker):
             descs1_valid = self.feats1['descriptors'][matches['matches'][inliers_mask,1]][valid_ids]
             self.frame1.set_map_points_and_descs(self.map.get_points(), descs1_valid)
         else:
+            map_pts = self.map.points
+            new_R = self.frame0.pose[:3,:3]
+            new_t = self.frame0.pose[:3,3]
+            new_t[2]+=0.9996969
+            new_pose = np.eye(4)
+            new_pose[:3,:3] = new_R
+            new_pose[:3,3] = new_t
+            self.frame1.set_pose(new_pose)
+
+            pts_3d_ids, _ = match_3D_to_2D(self.frame1, map_pts, 
+                                            self.max_reproj_distance, 
+                                            self.desc_norm_type, 
+                                            self.max_descriptor_distance)
             
-            map_pts = self.frame0.map_points
-            self.frame1.set_pose(self.frame0.pose)
-            print('frame 1 pose before', self.frame1.pose)
-
-
-            pts_3d_ids, feat_ids = match_3D_to_2D(self.frame1, map_pts, 
-                                                self.max_reproj_distance, 
-                                                self.desc_norm_type, 
-                                                self.max_descriptor_distance)
             map_pts = [map_pts[i] for i in pts_3d_ids]
+
+            self.frame1.set_map_points_and_descs(map_pts, [pt.get_descriptor() for pt in map_pts])
             
-            map_pts_world = np.array([p.coordinates for p in map_pts])
-            map_pts_cam = self.frame1.pose[:3,:].dot(np.vstack((map_pts_world.T, np.ones((1, map_pts_world.shape[0]))))).T
+            #Triangulate all new feature matches between frame0 and frame1
+            matches = self.matcher.match(self.frame0.features, self.frame1.features)
+            #get matched kpts
+            in_kpts0un = self.frame0.keypoints_un[matches['matches'][:,0]]
+            in_kpts1un = self.frame1.keypoints_un[matches['matches'][:,1]]
+            points3D = triangulate_points(in_kpts0un.T, in_kpts1un.T, self.frame0.pose[:3,:], self.frame1.pose[:3,:])
+            #filter points based on depth consistency
+            mask0, _ = self.frame0.project_points_to_frame(points3D)
+            mask1, _ = self.frame1.project_points_to_frame(points3D)
+            valid_ids = (mask0 & mask1)
+            points3D = points3D[valid_ids]
+
+            #add them to the map if they are not already there
+            new_pts_mask = self.map.check_new_points(points3D)
+            points3D = points3D[new_pts_mask]
+            idxs = self.map.add_points_from_coordinates(points3D)
             
-            if(self.camera.D.sum() == 0):
-                _, rvec, tvec, _ = cv2.solvePnPRansac(map_pts_cam, self.frame1.keypoints[feat_ids], self.camera.K, None)
-            else:
-                _, rvec, tvec, _ = cv2.solvePnPRansac(map_pts_cam, self.frame1.keypoints[feat_ids], self.camera.K, self.camera.D)
+            #add new points to frame1
+            new_pts = [self.map.get_point(i) for i in idxs]
+            new_descs = self.feats1['descriptors'][matches['matches'][:,1]][valid_ids][new_pts_mask]
+            self.frame1.set_map_points_and_descs(new_pts, new_descs)
+
+            n_inliers = self.optimizer.optimize(self.frame1)
+            print(f'Optimized pose with {n_inliers} inliers')
             
-            R = cv2.Rodrigues(rvec)[0]
-            t = tvec
-            self.R = R.dot(self.R)
-            self.t = self.t + self.R.dot(t)
-            self.frame1.set_pose_from_Rt(R.T, np.matmul(-R.T, t))
-            print('frame 1 pose after', self.frame1.pose)
-            #TODO: Triangulate all new feature matches between frame0 and frame1
 
         self.frame0 = self.frame1 
         self.index += 1
@@ -157,7 +171,7 @@ if __name__ == '__main__':
     frames = []
 
     for i, img  in enumerate(dataloader):
-        if(i > 2):
+        if(i > 10):
             while True:
                 a=1
         print(i,'/', len(dataloader))
@@ -170,5 +184,5 @@ if __name__ == '__main__':
         frame_pose[:3,3] = t.flatten()
         f.pose = frame_pose
         frames.append(f)
-        gui.draw_trajectory(frames)
-        gui.draw_map_points(vo.map.get_points())
+        gui.draw_map(frames, vo.map.get_points())
+        print('number of points ', len(vo.map.get_points()))

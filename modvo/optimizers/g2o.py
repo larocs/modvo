@@ -22,7 +22,7 @@ class G2OOptimizer(Optimizer):
         optimizer.add_vertex(v_se3)
 
         #keypoints 
-        kptsu = frame.camera.undistort_keypoints(frame.features['keypoints'].T).T
+        kptsu = frame.keypoints_u
         scaleLevels = frame.detector.getScaleLevels()
         levelSigma2 = np.square(scaleLevels)
         invLevelSigma2 = 1.0/levelSigma2
@@ -88,3 +88,4 @@ class G2OOptimizer(Optimizer):
         frame.set_pose(pose)
 
         return nInliers
+    
