@@ -1,6 +1,6 @@
 # MODVO
 
-This repository contains the code for MODVO, a modular VO pipeline written in Python. MODVO was designed to make it easy to experiment with different VO modules (such as feature detection and feature matching) and to combine them in different ways. It is also designed to be easy to use and to be easy to integrate with other code. This is a work in progress and we are still working on improving the code and adding more modules.
+This repository contains the code for MODVO, a modular VO pipeline written in Python, published in the paper [A comparison of deep learning-based visual odometry algorithms in challenging scenarios](https://ieeexplore.ieee.org/document/10553552). MODVO was designed to make it easy to experiment with different VO modules (such as feature detection and feature matching) and to combine them in different ways. It is also designed to be easy to use and to be easy to integrate with other code. This is a work in progress and we are still working on improving the code and adding more modules.
 
 
 ## Installation
@@ -91,6 +91,20 @@ To add a new module to MODVO you need to create a new Python file inside the `mo
                          'descriptors': descriptors,
                          'scores': scores}
         return self.features
+```
+## Citation
+If you find our work useful, please consider citing our paper:
+```
+@INPROCEEDINGS{10553552,
+  author={Bruno, Hudson M. S. and Cabral, Kleber M. and Colombini, Esther L. and Givigi, Sidney N.},
+  booktitle={2024 IEEE International Systems Conference (SysCon)}, 
+  title={A comparison of deep learning-based visual odometry algorithms in challenging scenarios}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={1-8},
+  keywords={Deep learning;Visualization;Accuracy;Feature detection;Pipelines;Feature extraction;Cameras},
+  doi={10.1109/SysCon61195.2024.10553552}}
 ```
 
 ## References and Inspiration
