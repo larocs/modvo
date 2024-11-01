@@ -106,6 +106,11 @@ If you find our work useful, please consider citing our paper:
   keywords={Deep learning;Visualization;Accuracy;Feature detection;Pipelines;Feature extraction;Cameras},
   doi={10.1109/SysCon61195.2024.10553552}}
 ```
+## Dataset
+The dataset used in the paper above is available [here](https://borealisdata.ca/dataset.xhtml?persistentId=doi:10.5683/SP3/VIG3FC).
+
+## Other publications
+Also checkout our RGB-D Visual SLAM dataset with emulated camera failures [here](https://larocs.github.io/queenscamp-dataset/).
 
 ## References and Inspiration
 
